@@ -164,7 +164,7 @@ def find_by_url(url, js = False):
 			else:
 				purl = process_url(url, script_src)
 				script_array[purl] = Extract_html(purl)
-		# 常见高危漏洞目录
+		# 新增spring boot actuator等敏感目录扫描
 		if url[-1] != '/':
 			url = url + '/'
 		vul_path = r"""
