@@ -7,17 +7,29 @@ from requests.packages import urllib3
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
+
 leak_infos = [] #存储元组，每个元素对应为：敏感信息正则名称、敏感信息值、敏感信息来源页面
 leak_infos_match = []
-leak_info_patterns = {'Mail': r'(([a-zA-Z0-9][_|\.])*[a-zA-Z0-9]+@([a-zA-Z0-9][-|_|\.])*[a-zA-Z0-9]+\.((?!js|css|jpg|jpeg|png|ico)[a-zA-Z]{2,}))',
-                      'Swagger UI': r'((swagger-ui.html)|(\"swagger\":)|(Swagger UI)|(swaggerUi))',
-                      'Druid': r'((Druid Stat Index)|(druid monitor))',
-                      'URL As A Value': r'(=(https?://.*|https?%3(a|A)%2(f|F)%2(f|F).*))',
-                      'Spring Boot': r'((local.server.port)|(:{\"mappings\":{\")|({\"_links\":{\"self\":))',
+leak_info_patterns = {
                       'IDCard': '[^0-9]((\d{8}(0\d|10|11|12)([0-2]\d|30|31)\d{3}$)|(\d{6}(18|19|20)\d{2}(0[1-9]|10|11|12)([0-2]\d|30|31)\d{3}(\d|X|x)))[^0-9]',
-                      'Phone': '[^0-9A-Za-z](1(3([0-35-9]\d|4[1-8])|4[14-9]\d|5([\d]\d|7[1-79])|66\d|7[2-35-8]\d|8\d{2}|9[89]\d)\d{7})[^0-9A-Za-z]',
-                      'Internal IP Address': '[^0-9]((127\.0\.0\.1)|(localhost)|(10\.\d{1,3}\.\d{1,3}\.\d{1,3})|(172\.((1[6-9])|(2\d)|(3[01]))\.\d{1,3}\.\d{1,3})|(192\.168\.\d{1,3}\.\d{1,3}))',
-                      'Password': r"(?i)("r"password\s*[`=:\"]+\s*[^\s]+|"r"password is\s*[`=:\"]*\s*[^\s]+|"r"pwd\s*[`=:\"]*\s*[^\s]+|"r"passwd\s*[`=:\"]+\s*[^\s]+)"
+                      'phone': '[^0-9A-Za-z](1(3([0-35-9]\d|4[1-8])|4[14-9]\d|5([\d]\d|7[1-79])|66\d|7[2-35-8]\d|8\d{2}|9[89]\d)\d{7})[^0-9A-Za-z]',
+                      'SpringBoot': r'((local.server.port)|(:{\"mappings\":{\")|({\"_links\":{\"self\":))',
+                      'swagger': r'((swagger-ui.html)|(\"swagger\":)|(Swagger UI)|(swaggerUi))',
+                      'druid': r'((Druid Stat Index)|(druid monitor))',
+                      'mail': r'(([a-zA-Z0-9][_|\.])*[a-zA-Z0-9]+@([a-zA-Z0-9][-|_|\.])*[a-zA-Z0-9]+\.((?!js|css|jpg|jpeg|png|ico)[a-zA-Z]{2,}))',
+                      'url': r'(=(https?://.*|https?%3(a|A)%2(f|F)%2(f|F).*))',
+                      'password': r"((|'|\")([p](ass|wd|asswd|assword))(|'|\")(:|=)( |)('|\")(.*?)('|\")(|,))",
+                      'oss': r"([A|a]ccess[K|k]ey[I|i][d|D]|[A|a]ccess[K|k]ey[S|s]ecret)",
+                      "jdbc-connect": r"(jdbc:[a-z:]+://[A-Za-z0-9\.\-_:;=/@?,&]+)",
+                      "Internal IP": r"([^0-9]((127\.0\.0\.1)|(10\.\d{1,3}\.\d{1,3}\.\d{1,3})|(172\.((1[6-9])|(2\d)|(3[01]))\.\d{1,3}\.\d{1,3})|(192\.168\.\d{1,3}\.\d{1,3})))",
+                      "Username Field": r"((|'|\")([u](ser|name|ame|sername))(|'|\")(:|=)( |)('|\")(.*?)('|\")(|,))",
+                      "WeCom Key": r"([c|C]or[p|P]id|[c|C]orp[s|S]ecret)",
+                      "Zoho Webhook": r"(https://creator\.zoho\.com/api/[a-z0-9/_.-]+\?authtoken=[a-z0-9]+)",
+                      "Microsoft Teams Webhook": r"(https://outlook\.office\.com/webhook/[a-z0-9@-]+/IncomingWebhook/[a-z0-9-]+/[a-z0-9-]+)",
+                      "Github Access Token": r"([a-z0-9_-]*:[a-z0-9_\-]+@github\.com*)",
+                      "Authorization Header": r"((basic [a-z0-9=:_\+\/-]{5,100})|(bearer [a-z0-9_.=:_\+\/-]{5,100}))",
+                      "key": r"(session_key|sessionKey|secret|access_token)",
+                      "Bucket": r"(InvalidBucketName|NoSuchBucket|<Key>)"
                      }
 #匹配敏感信息
 def find_leak_info(url, text):
@@ -26,19 +38,21 @@ def find_leak_info(url, text):
         try:
             matchs = re.findall(pattern, text, re.IGNORECASE)
             for match in matchs:
-                match_tuple = (k+'_carrypan', match, 'carrypan_'+url)
-                match_tuple_print = (k, match, url)
-                if match not in leak_infos_match:
+                #match_tuple = (k, match, url)
+                match_tuple = (k, url)
+                #match_tuple_print = (k, match, url)
+                # 控制台输出和保存时判断是否重复
+                if match not in leak_infos_match and match_tuple not in leak_infos:
                     leak_infos.append(match_tuple)
                     leak_infos_match.append(match)
-                    print('[+]Find a leak info ==> {}'.format(match_tuple_print))
+                    print('[+]Find a leak info ==> {}'.format(match_tuple))
         except Exception as e:
             return None
 #key是匹配到的正则名称,pattern是对应的正则表达式,text是url响应结果,url是jsfinder爬到的路径信息
 
             
 def parse_args():
-    parser = argparse.ArgumentParser(epilog='\tExample: \r\npython ' + sys.argv[0] + " -u http://www.baidu.com")
+    parser = argparse.ArgumentParser(epilog='\tExample: \r\npython ' + sys.argv[0] + " -u http://www.xxxxxx.com")
     parser.add_argument("-u", "--url", help="The website")
     parser.add_argument("-c", "--cookie", help="The website cookie")
     parser.add_argument("-f", "--file", help="The file contains url or js")
@@ -88,12 +102,15 @@ def Extract_html(URL):
 	"Cookie": args.cookie}
 	try:
 		raw = requests.get(URL, headers = header, timeout=5, verify=False)
-		raw = raw.content.decode("utf-8", "ignore")
-		return raw
+		if raw.status_code == 200:
+			raw = raw.content.decode("utf-8", "ignore")
+			return raw
+		else:
+			return None
 	except:
 		return None
 
-# POST the page source
+# Post the page source
 def Extract_html_post(URL):
 	header = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.108 Safari/537.36",
 	"Cookie": args.cookie,
@@ -101,8 +118,11 @@ def Extract_html_post(URL):
 	data = "{}"
 	try:
 		raw = requests.post(URL, data=data, headers = header, timeout=5, verify=False)
-		raw = raw.content.decode("utf-8", "ignore")
-		return raw
+		if raw.status_code == 200:
+			raw = raw.content.decode("utf-8", "ignore")
+			return raw
+		else:
+			return None
 	except:
 		return None
 
@@ -146,7 +166,8 @@ def find_by_url(url, js = False):
 		try:
 			print("url:" + url)
 		except:
-			print("Please specify a URL like https://www.baidu.com")
+			print("Please specify a URL like https://www.xxxxxx.com")
+		print('--------------------------------------------获取接口信息中，请稍等--------------------------------------------')
 		html_raw = Extract_html(url)
 		if html_raw == None: 
 			print("Fail to access " + url)
@@ -164,50 +185,75 @@ def find_by_url(url, js = False):
 			else:
 				purl = process_url(url, script_src)
 				script_array[purl] = Extract_html(purl)
-		# 新增spring boot actuator等敏感目录扫描
+		# 常见目录扫描
 		if url[-1] != '/':
 			url = url + '/'
-		vul_path = r"""
-		druid/index.html
-		system/index.html
-		webpage/system/druid/index.html
-		api
-		swagger-ui.html
-		swagger/ui/index
-		api/swagger-ui.html
-		swagger/index.html
-		env
-		trace
-		actuator
-		api/env
-		api/trace
-		actuator/env
-		actuator/trace
-		monitor/env
-		gateway/actuator/env
+		api_paths = r"""
+		api-docs
+		api/api-docs
+		doc.html
+		api.html
+		api/v2/api-docs
 		v2/api-docs
-		api/swagger.json
+        upload
 		"""
-		paths = vul_path.strip().splitlines()
-		for path in paths:
+		api_path = api_paths.strip().splitlines()
+        #根目录下拼接api_paths并进行接口地址提取
+		for path in api_path:
 			vul = url + path.strip()
 			script_array[vul] = Extract_html(vul)
 
 		script_array[url] = script_temp
 		#script_array.append(script_temp)
+		vul_path = r"""
+		env
+        actuator
+		actuator/env
+		api/actuator/env
+		api/env
+		druid/login.html
+		api/druid/login.html
+		swagger-ui.html
+		api/swagger-ui.html
+		swagger/index.html
+		"""
+		paths = vul_path.strip().splitlines()
 		allurls = []
-        
+        #根目录下拼接vul_path
+		for path in paths:
+			if path.strip() not in allurls:
+				allurls.append(url + path.strip())
+			else:
+				continue
+
         #遍历js文件，获取js文件中接口信息
 		for script in script_array:
 			temp_urls = extract_URL(script_array[script])
 			#print(len(temp_urls))
 			if len(temp_urls) == 0: continue
 			for temp_url in temp_urls:
-				allurls.append(process_url(script, temp_url)) 
-
+				#print(temp_url)
+				url_vul = process_url(script, temp_url)
+				#print(url_vul)
+				temp1 = urlparse(url)
+				temp2 = urlparse(url_vul)
+                # 获取到的接口信息中去除jpg、png、css、vue等
+				if '.exe' not in temp2.path and '.png' not in temp2.path and '.jpg' not in temp2.path and '.vue' not in temp2.path and '.css' not in temp2.path and '@' not in temp2.path and '.svg' not in temp2.path:
+					allurls.append(url_vul)
+				if temp1.netloc == temp2.netloc and '.' not in temp2.path and ':' not in temp2.path and '{' not in temp2.path and '[' not in temp2.path:
+					if url_vul[-1] == '/':
+						for path in paths:
+							#print(url_vul + path.strip())
+							allurls.append(url_vul + path.strip())
+					if '?' not in url_vul and url_vul[-1] != '/':
+						for path in paths:
+							#print(url_vul + '/' + path.strip())
+							allurls.append(url_vul + '/' + path.strip())
 		result = []
-		print('##############敏感信息查询中##############')
+		print("获取接口数量:" + str(len(allurls)))
+		print('--------------------------------------------接口获取完毕，正则匹配中------------------------------------')
 		for singerurl in allurls:
+			#print(singerurl)
 			url_raw = urlparse(url)
 			domain = url_raw.netloc
 			positions = find_last(domain, ".")
@@ -221,13 +267,13 @@ def find_by_url(url, js = False):
 				if singerurl.strip() not in result:
 					result.append(singerurl)
 					#匹配敏感信息
-					#print(singerurl)
+					print(singerurl)
 					resp = Extract_html(singerurl)
 					resp_post = Extract_html_post(singerurl)
 					find_leak_info(singerurl, resp)
 					find_leak_info(singerurl, resp_post)
 					#find_vul_dir(singerurl)
-		print('##############敏感信息查询结束##############')
+		print('--------------------------------------------正则匹配已结束，请查收--------------------------------------------')
 		return result
 	return sorted(set(extract_URL(Extract_html(url)))) or None
 
@@ -336,12 +382,6 @@ if __name__ == "__main__":
 	if args.file == None:
 		if args.deep is not True:
 			urls = find_by_url(args.url)
-            #print(len(urls))
-            #for url in urls:
-                #print(url)
-            #for url in urls:
-            #resp = Extract_html(urls)
-            #find_leak_info(url, resp)
 			giveresult(urls, args.url)
 		else:
 			urls = find_by_url_deep(args.url)
