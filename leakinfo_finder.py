@@ -49,7 +49,6 @@ def find_leak_info(url, text):
         except Exception as e:
             return None
 #key是匹配到的正则名称,pattern是对应的正则表达式,text是url响应结果,url是jsfinder爬到的路径信息
-
             
 def parse_args():
     parser = argparse.ArgumentParser(epilog='\tExample: \r\npython ' + sys.argv[0] + " -u http://www.xxxxxx.com")
@@ -63,7 +62,6 @@ def parse_args():
     parser.add_argument("-d", "--deep",help="Deep find", action="store_true")
     return parser.parse_args()
 
-# Regular expression comes from https://github.com/GerbenJavado/LinkFinder
 def extract_URL(JS):
 	pattern_raw = r"""
 	  (?:"|')                               # Start newline delimiter
