@@ -1,4 +1,4 @@
-# leakfinder
+# 批量扫描JS文件中接口的脚本
 
 1、新增响应包中手机号、身份证号码等敏感信息正则匹配
 
@@ -6,7 +6,7 @@
 
 3、新增POST请求方式（Content-Type：application/json）
 
-命令：python3 leakfinder.py -f url.txt -ol leakinfo.txt
+命令：python3 leakinfo_finder.py -f url.txt -ol leakinfo.txt
 
 ![image](https://user-images.githubusercontent.com/47935274/194695775-4143c47a-0035-48fa-9550-503aae6271cd.png)
 
