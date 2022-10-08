@@ -6,6 +6,12 @@
 
 3、新增POST请求方式（Content-Type：application/json）
 
+命令：python3 leakfinder.py -f url.txt -ol leakinfo.txt
+
+![image](https://user-images.githubusercontent.com/47935274/194695677-13ebf502-99c1-48ba-a559-c527581e7e2e.png)
+
+
+
 参考
 
 https://github.com/p1g3/JSINFO-SCAN
