@@ -9,6 +9,7 @@
 命令：python3 leakinfo_finder.py -f url.txt -ol leakinfo.txt
 ![image](https://user-images.githubusercontent.com/47935274/194975640-4a1c8012-76f0-4319-8766-9df8497f7fc6.png)
 
+
 ![image](https://user-images.githubusercontent.com/47935274/194695775-4143c47a-0035-48fa-9550-503aae6271cd.png)
 
 
