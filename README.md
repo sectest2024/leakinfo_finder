@@ -1,3 +1,5 @@
+![image](https://user-images.githubusercontent.com/47935274/194975523-ff001001-02bd-4685-818c-f4a146dbd4f7.png)
+
 # 批量扫描JS文件中接口的脚本
 
 1、新增响应包中手机号、身份证号码等敏感信息正则匹配
