@@ -5,6 +5,6 @@
     <title>Print a Sentence</title>
 </head>
 <body>
-    <% Response.Write("Hello, N-I-O-1024!"); %>
+    <% Response.Write("Hello, 1024!"); %>
 </body>
 </html>
